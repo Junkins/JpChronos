@@ -1,5 +1,5 @@
 {
-    "name": "Junkins/JpChronos",
+    "name": "junkins/jp-chronos",
     "description": "CakePHP JpChronos",
     "autoload": {
         "psr-4": {
