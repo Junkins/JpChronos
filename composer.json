@@ -1,0 +1,15 @@
+{
+    "name": "Junkins/JpChronos",
+    "description": "CakePHP JpChronos",
+    "autoload": {
+        "psr-4": {
+            "JpChronos\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "JpChronos\\Test\\": "tests",
+            "JpChronos\\Test\\App\\": "tests/test_app/App"
+        }
+    },
+}
