@@ -11,5 +11,5 @@
             "JpChronos\\Test\\": "tests",
             "JpChronos\\Test\\App\\": "tests/test_app/App"
         }
-    },
+    }
 }
