@@ -2,21 +2,22 @@
 
 namespace JpChronos;
 
+use Cake\I18n\FrozenDate;
 use Cake\Chronos\Chronos;
 
-class JpChronos extends Chronos
+class JpChronos extends FrozenDate
 {
 
     protected static $toStringFormat = '{短元号}{年}(Y)/m/d';
 
     const START_DATE_MEIJI      = 18680125; // 明治は1868年1月25日 〜
     const START_DATE_TAISHO     = 19120730; // 大正は1912年7月30日 〜
-    const START_DATE_SHOWA      = 19261225; // 昭和は1989年12月25日 〜
+    const START_DATE_SHOWA      = 19261225; // 昭和は1926年12月25日 〜
     const START_DATE_HEISEI     = 19890108; // 平成は1989年1月8日 〜
 
     const START_YEAR_MEIJI      = 1868;     // 明治は1868年1月25日 〜
     const START_YEAR_TAISHO     = 1911;     // 大正は1912年7月30日 〜
-    const START_YEAR_SHOWA      = 1925;     // 昭和は1989年12月25日 〜
+    const START_YEAR_SHOWA      = 1925;     // 昭和は1926年12月25日 〜
     const START_YEAR_HEISEI     = 1988;     // 平成は1989年1月8日 〜
 
     const ERA_MEIJI             = '明治';
@@ -63,9 +64,17 @@ class JpChronos extends Chronos
     */
     public function __construct($time = 'now', $tz = null)
     {
+        if ($time == '') {
+            return '';
+        }
+
         // タイムゾーンの設定
         if ($tz === null) {
             $tz = 'Asia/Tokyo';
+        }
+
+        if (is_object($time)) {
+            $time = $this->convert2String($time);
         }
 
         // 和暦の場合は西暦に変換
@@ -74,6 +83,22 @@ class JpChronos extends Chronos
         }
 
         parent::__construct($time, $tz);
+    }
+
+    /**
+     * convert2String
+     *
+     *
+     * @author ito
+     */
+    private function convert2String($time)
+    {
+        if ($time instanceof Chronos) {
+            return Chronos::parse($time);
+        }
+
+
+        return $time;
     }
 
     /**
@@ -142,6 +167,20 @@ class JpChronos extends Chronos
     }
 
     /**
+    * warekiZeroYear
+    *
+    */
+    public function warekiZeroYear()
+    {
+        $warekiYear = $this->warekiYear();
+        //元年以外は2桁で0埋めする{}
+        if (is_numeric($warekiYear)) {
+            $warekiYear = sprintf('%02d', $warekiYear);
+        }
+        return $warekiYear;
+    }
+
+    /**
     * warekiFormat
     *
     */
@@ -155,6 +194,9 @@ class JpChronos extends Chronos
 
         // 昭和63の「63」の変換
         $jPformat = preg_replace('/{年}/', $this->warekiYear(), $jPformat);
+
+        // 昭和63の「63」の変換(桁ぞろえ)
+        $jPformat = preg_replace('/{0年}/', $this->warekiZeroYear(), $jPformat);
 
         return $jPformat;
     }
@@ -191,69 +233,38 @@ class JpChronos extends Chronos
             return false;
         }
 
+        $era = '';
         // 明治
         if (
             (self::START_DATE_MEIJI <= $time) &&
             ($time < self::START_DATE_TAISHO)
         ) {
-            switch ($format) {
-                case 'era':
-                    return self::ERA_MEIJI;
-                    break;
-                case 'initial':
-                    return self::ERA_INITIAL_MEIJI;
-                    break;
-                default:
-                    break;
-            }
-        }
-
+            $era = self::ERA_MEIJI;
+        } elseif (
         // 大正
-        if (
             (self::START_DATE_TAISHO <= $time) &&
             ($time < self::START_DATE_SHOWA)
         ) {
-            switch ($format) {
-                case 'era':
-                    return self::ERA_TAISHO;
-                    break;
-                case 'initial':
-                    return self::ERA_INITIAL_TAISHO;
-                    break;
-                default:
-                    break;
-            }
-        }
-
+            $era = self::ERA_TAISHO;
+        } elseif (
         // 昭和
-        if (
             (self::START_DATE_SHOWA <= $time) &&
             ($time < self::START_DATE_HEISEI)
         ) {
-            switch ($format) {
-                case 'era':
-                    return self::ERA_SHOWA;
-                    break;
-                case 'initial':
-                    return self::ERA_INITIAL_SHOWA;
-                    break;
-                default:
-                    break;
-            }
+            $era = self::ERA_SHOWA;
+        } elseif (self::START_DATE_HEISEI <= $time) {
+            // 平成
+            $era = self::ERA_HEISEI;
         }
-
-        // 平成
-        if (self::START_DATE_HEISEI <= $time) {
-            switch ($format) {
-                case 'era':
-                    return self::ERA_HEISEI;
-                    break;
-                case 'initial':
-                    return self::ERA_INITIAL_HEISEI;
-                    break;
-                default:
-                    break;
-            }
+        switch ($format) {
+            case 'era':
+                return $era;
+                break;
+            case 'initial':
+                return self::$ERA_TO_ERA_INITIAL_OPTIONS[$era];
+                break;
+            default:
+                break;
         }
 
         return false;
