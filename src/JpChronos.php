@@ -15,9 +15,9 @@ class JpChronos extends Chronos
     const START_DATE_HEISEI     = 19890108; // 平成は1989年1月8日 〜
 
     const START_YEAR_MEIJI      = 1868;     // 明治は1868年1月25日 〜
-    const START_YEAR_TAISHO     = 1911;     // 大正は1912年7月30日 〜
-    const START_YEAR_SHOWA      = 1925;     // 昭和は1926年12月25日 〜
-    const START_YEAR_HEISEI     = 1988;     // 平成は1989年1月8日 〜
+    const START_YEAR_TAISHO     = 1912;     // 大正は1912年7月30日 〜
+    const START_YEAR_SHOWA      = 1926;     // 昭和は1926年12月25日 〜
+    const START_YEAR_HEISEI     = 1989;     // 平成は1989年1月8日 〜
 
     const ERA_MEIJI             = '明治';
     const ERA_TAISHO            = '大正';
@@ -29,7 +29,7 @@ class JpChronos extends Chronos
     const ERA_INITIAL_SHOWA     = 'S';
     const ERA_INITIAL_HEISEI    = 'H';
 
-    const JP_DATA_PATTERN       = '^(明治|大正|昭和|平成)([0-9]{1,2})年([0-9]{1,2})月([0-9]{1,2})日$';
+    const JP_DATA_PATTERN       = '^(明治|大正|昭和|平成)([0-9]{1,2}|元)年([0-9]{1,2})月([0-9]{1,2})日$';
     const GT_DATA_PATTERN       = '^([0-9]{4})([0-9]{2})([0-9]{2})$';
 
     /**
@@ -157,8 +157,14 @@ class JpChronos extends Chronos
     public function warekiYear()
     {
         $year = parent::format('Y');
-        $sub = self::$ERA_TO_START_YEAR_OPTIONS[$this->wareki()];
-        $warekiYear = $year - $sub;
+        $wareki = $this->wareki();
+
+        if ( $wareki === false ) {
+            return '';
+        }
+
+        $sub = self::$ERA_TO_START_YEAR_OPTIONS[$wareki];
+        $warekiYear = $year - $sub + 1;
         if ($warekiYear == 1) {
             $warekiYear = '元';
         }
@@ -207,7 +213,13 @@ class JpChronos extends Chronos
     public function convertWarekiToPlaneSeireki($time)
     {
         $params = $this->getWarekiParam($time);
-        $year   = $params[2] + self::$ERA_TO_START_YEAR_OPTIONS[$params[1]];
+
+        // 元年を1年に修正
+        if ( $params[2] == '元' ) {
+            $params[2] = 1;
+        }
+
+        $year   = $params[2] + self::$ERA_TO_START_YEAR_OPTIONS[$params[1]] - 1;
         $month  = sprintf('%02d', $params[3]);
         $day    = sprintf('%02d', $params[4]);
         return (int) $year . $month . $day;
