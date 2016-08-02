@@ -2,10 +2,9 @@
 
 namespace JpChronos;
 
-use Cake\I18n\FrozenDate;
 use Cake\Chronos\Chronos;
 
-class JpChronos extends FrozenDate
+class JpChronos extends Chronos
 {
 
     protected static $toStringFormat = '{短元号}{年}(Y)/m/d';
