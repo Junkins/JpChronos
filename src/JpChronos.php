@@ -57,6 +57,16 @@ class JpChronos extends Chronos
     ];
 
     /**
+     * getEraInitialList.
+     *
+     * @author ito
+     */
+    public static function getEraInitialList()
+    {
+        return self::$ERA_TO_ERA_INITIAL_OPTIONS;
+    }
+
+    /**
     * __construct
     *
     * @author ito
