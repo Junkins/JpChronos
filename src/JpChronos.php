@@ -62,10 +62,20 @@ class JpChronos extends Chronos
     ];
 
     /**
-     * __construct.
+     * getEraInitialList.
      *
      * @author ito
      */
+    public static function getEraInitialList()
+    {
+        return self::$ERA_TO_ERA_INITIAL_OPTIONS;
+    }
+
+    /**
+    * __construct
+    *
+    * @author ito
+    */
     public function __construct($time = 'now', $tz = null)
     {
         if ($time == '') {
