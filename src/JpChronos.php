@@ -154,7 +154,7 @@ class JpChronos extends Chronos
     * warekiYear
     *
     */
-    public function warekiYear()
+    public function warekiYear($ganFlg = true)
     {
         $year = parent::format('Y');
         $wareki = $this->wareki();
@@ -165,7 +165,7 @@ class JpChronos extends Chronos
 
         $sub = self::$ERA_TO_START_YEAR_OPTIONS[$wareki];
         $warekiYear = $year - $sub + 1;
-        if ($warekiYear == 1) {
+        if ($warekiYear == 1 && $ganFlg == true) {
             $warekiYear = '元';
         }
         return $warekiYear;
