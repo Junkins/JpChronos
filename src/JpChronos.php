@@ -32,11 +32,15 @@ class JpChronos extends Chronos
     const JP_DATA_PATTERN       = '^(明治|大正|昭和|平成)([0-9]{1,2}|元)年([0-9]{1,2})月([0-9]{1,2})日$';
     const GT_DATA_PATTERN       = '^([0-9]{4})([0-9]{2})([0-9]{2})$';
 
+    const FORMAT_ERA            = 'era';
+    const FORMAT_INITIAL        = 'initial';
+
     /**
-    * ERA_TO_START_YEAR_OPTIONS
-    * 元号 => 和暦の開始年
-    * @author ito
-    */
+     * ERA_TO_START_YEAR_OPTIONS
+     * 元号 => 和暦の開始年.
+     *
+     * @author ito
+     */
     private static $ERA_TO_START_YEAR_OPTIONS = [
         self::ERA_MEIJI         => self::START_YEAR_MEIJI,
         self::ERA_TAISHO        => self::START_YEAR_TAISHO,
@@ -45,16 +49,27 @@ class JpChronos extends Chronos
     ];
 
     /**
-    * ERA_TO_ERA_INITIAL_OPTIONS
-    * 元号 => 元号のイニシャルへの変更
-    * @author ito
-    */
+     * ERA_TO_ERA_INITIAL_OPTIONS
+     * 元号 => 元号のイニシャルへの変更.
+     *
+     * @author ito
+     */
     private static $ERA_TO_ERA_INITIAL_OPTIONS = [
         self::ERA_MEIJI         => self::ERA_INITIAL_MEIJI,
         self::ERA_TAISHO        => self::ERA_INITIAL_TAISHO,
         self::ERA_SHOWA         => self::ERA_INITIAL_SHOWA,
         self::ERA_HEISEI        => self::ERA_INITIAL_HEISEI
     ];
+
+    /**
+     * getEraInitialList.
+     *
+     * @author ito
+     */
+    public static function getEraInitialList()
+    {
+        return self::$ERA_TO_ERA_INITIAL_OPTIONS;
+    }
 
     /**
     * __construct
@@ -85,8 +100,7 @@ class JpChronos extends Chronos
     }
 
     /**
-     * convert2String
-     *
+     * convert2String.
      *
      * @author ito
      */
@@ -96,64 +110,73 @@ class JpChronos extends Chronos
             return Chronos::parse($time);
         }
 
-
         return $time;
     }
 
     /**
-    * format
-    * @author ito
-    */
+     * format.
+     *
+     * @author ito
+     */
     public function format($format)
     {
         $formated = parent::format($format);
+
         return $this->warekiFormat($formated);
     }
 
     /**
-    * isWareki
-    *
-    */
+     * isWareki.
+     *
+     * @author ito.
+     */
     public function isWareki($time)
     {
         return preg_match('/' . self::JP_DATA_PATTERN . '/', $time);
     }
 
     /**
-    * getWarekiParam
-    *
-    */
+     * getWarekiParam.
+     *
+     * @author ito
+     */
     public function getWarekiParam($time)
     {
         $match = [];
         preg_match('/' . self::JP_DATA_PATTERN . '/', $time, $match);
+
         return $match;
     }
 
     /**
-    * wareki
-    *
-    */
+     * wareki.
+     *
+     * @author ito
+     */
     public function wareki()
     {
         $time = parent::format('Ymd');
+
         return $this->getWareki($time);
     }
 
     /**
-    * warekiInitial
-    *
-    */
+     * warekiInitial.
+     *
+     * @author ito
+     */
     public function warekiInitial()
     {
         $time = parent::format('Ymd');
-        return $this->getWareki($time, 'initial');
+
+        return $this->getWareki($time, self::FORMAT_INITIAL);
     }
 
     /**
-    * warekiYear
-    *
-    */
+     * warekiYear.
+     *
+     * @author ito
+     */
     public function warekiYear($ganFlg = true)
     {
         $year = parent::format('Y');
@@ -168,13 +191,15 @@ class JpChronos extends Chronos
         if ($warekiYear == 1 && $ganFlg == true) {
             $warekiYear = '元';
         }
+
         return $warekiYear;
     }
 
     /**
-    * warekiZeroYear
-    *
-    */
+     * warekiZeroYear.
+     *
+     * @author ito
+     */
     public function warekiZeroYear()
     {
         $warekiYear = $this->warekiYear();
@@ -182,13 +207,15 @@ class JpChronos extends Chronos
         if (is_numeric($warekiYear)) {
             $warekiYear = sprintf('%02d', $warekiYear);
         }
+
         return $warekiYear;
     }
 
     /**
-    * warekiFormat
-    *
-    */
+     * warekiFormat.
+     *
+     * @author ito
+     */
     public function warekiFormat($jPformat)
     {
         // 明治・大正・昭和・平成変換
@@ -207,9 +234,10 @@ class JpChronos extends Chronos
     }
 
     /**
-    * convertWarekiToPlaneSeireki
-    *
-    */
+     * convertWarekiToPlaneSeireki.
+     *
+     * @author ito
+     */
     public function convertWarekiToPlaneSeireki($time)
     {
         $params = $this->getWarekiParam($time);
@@ -222,16 +250,18 @@ class JpChronos extends Chronos
         $year   = $params[2] + self::$ERA_TO_START_YEAR_OPTIONS[$params[1]] - 1;
         $month  = sprintf('%02d', $params[3]);
         $day    = sprintf('%02d', $params[4]);
+
         return (int) $year . $month . $day;
     }
 
     /**
-    * getWareki
-    *
-    */
-    private function getWareki($time, $format = 'era')
+     * getWareki.
+     *
+     * @author ito
+     */
+    private function getWareki($time, $format = self::FORMAT_ERA)
     {
-        if (!in_array($format, ['era', 'initial'])) {
+        if (!in_array($format, [self::FORMAT_ERA, self::FORMAT_INITIAL])) {
             return false;
         }
 
@@ -251,27 +281,28 @@ class JpChronos extends Chronos
             ($time < self::START_DATE_TAISHO)
         ) {
             $era = self::ERA_MEIJI;
-        } elseif (
         // 大正
+        } elseif (
             (self::START_DATE_TAISHO <= $time) &&
             ($time < self::START_DATE_SHOWA)
         ) {
             $era = self::ERA_TAISHO;
-        } elseif (
         // 昭和
+        } elseif (
             (self::START_DATE_SHOWA <= $time) &&
             ($time < self::START_DATE_HEISEI)
         ) {
             $era = self::ERA_SHOWA;
+        // 平成
         } elseif (self::START_DATE_HEISEI <= $time) {
-            // 平成
             $era = self::ERA_HEISEI;
         }
+
         switch ($format) {
-            case 'era':
+            case self::FORMAT_ERA:
                 return $era;
                 break;
-            case 'initial':
+            case self::FORMAT_INITIAL:
                 return self::$ERA_TO_ERA_INITIAL_OPTIONS[$era];
                 break;
             default:
