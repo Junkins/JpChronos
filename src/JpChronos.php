@@ -29,8 +29,8 @@ class JpChronos extends Chronos
     const ERA_INITIAL_SHOWA     = 'S';
     const ERA_INITIAL_HEISEI    = 'H';
 
-    const JP_DATA_PATTERN       = '^(明治|大正|昭和|平成)([0-9]{1,2}|元)年([0-9]{1,2})月([0-9]{1,2})日$';
-    const GT_DATA_PATTERN       = '^([0-9]{4})([0-9]{2})([0-9]{2})$';
+    const JP_DATA_PATTERN       = '^(明治|大正|昭和|平成)([0-9]{1,2}|元)年(0[1-9]{1}|1[0-2]{1})月(0[1-9]{1}|[1-2]{1}[0-9]{1}|3[0-1]{1})日$';
+    const GT_DATA_PATTERN       = '^([0-9]{4})(0[1-9]{1}|1[0-2]{1})(0[1-9]{1}|[1-2]{1}[0-9]{1}|3[0-1]{1})$';
 
     const FORMAT_ERA            = 'era';
     const FORMAT_INITIAL        = 'initial';
