@@ -6,30 +6,33 @@ use Cake\Chronos\Chronos;
 
 class JpChronos extends Chronos
 {
-
     protected static $toStringFormat = '{短元号}{年}(Y)/m/d';
 
     const START_DATE_MEIJI      = 18680125; // 明治は1868年1月25日 〜
     const START_DATE_TAISHO     = 19120730; // 大正は1912年7月30日 〜
     const START_DATE_SHOWA      = 19261225; // 昭和は1926年12月25日 〜
     const START_DATE_HEISEI     = 19890108; // 平成は1989年1月8日 〜
+    const START_DATE_REIWA      = 20190501; // 平成は1989年1月8日 〜
 
     const START_YEAR_MEIJI      = 1868;     // 明治は1868年1月25日 〜
     const START_YEAR_TAISHO     = 1912;     // 大正は1912年7月30日 〜
     const START_YEAR_SHOWA      = 1926;     // 昭和は1926年12月25日 〜
     const START_YEAR_HEISEI     = 1989;     // 平成は1989年1月8日 〜
+    const START_YEAR_REIWA      = 2019;     // 令和は2019年5月1日 〜
 
     const ERA_MEIJI             = '明治';
     const ERA_TAISHO            = '大正';
     const ERA_SHOWA             = '昭和';
     const ERA_HEISEI            = '平成';
+    const ERA_REIWA             = '令和';
 
     const ERA_INITIAL_MEIJI     = 'M';
     const ERA_INITIAL_TAISHO    = 'T';
     const ERA_INITIAL_SHOWA     = 'S';
     const ERA_INITIAL_HEISEI    = 'H';
+    const ERA_INITIAL_REIWA     = 'R';
 
-    const JP_DATA_PATTERN       = '^(明治|大正|昭和|平成)([0-9]{1,2}|元)年(0[1-9]{1}|1[0-2]{1})月(0[1-9]{1}|[1-2]{1}[0-9]{1}|3[0-1]{1})日$';
+    const JP_DATA_PATTERN       = '^(明治|大正|昭和|平成|令和)([0-9]{1,2}|元)年(0[1-9]{1}|1[0-2]{1})月(0[1-9]{1}|[1-2]{1}[0-9]{1}|3[0-1]{1})日$';
     const GT_DATA_PATTERN       = '^([0-9]{4})(0[1-9]{1}|1[0-2]{1})(0[1-9]{1}|[1-2]{1}[0-9]{1}|3[0-1]{1})$';
 
     const FORMAT_ERA            = 'era';
@@ -45,7 +48,8 @@ class JpChronos extends Chronos
         self::ERA_MEIJI         => self::START_YEAR_MEIJI,
         self::ERA_TAISHO        => self::START_YEAR_TAISHO,
         self::ERA_SHOWA         => self::START_YEAR_SHOWA,
-        self::ERA_HEISEI        => self::START_YEAR_HEISEI
+        self::ERA_HEISEI        => self::START_YEAR_HEISEI,
+        self::ERA_REIWA         => self::START_YEAR_REIWA
     ];
 
     /**
@@ -58,7 +62,8 @@ class JpChronos extends Chronos
         self::ERA_MEIJI         => self::ERA_INITIAL_MEIJI,
         self::ERA_TAISHO        => self::ERA_INITIAL_TAISHO,
         self::ERA_SHOWA         => self::ERA_INITIAL_SHOWA,
-        self::ERA_HEISEI        => self::ERA_INITIAL_HEISEI
+        self::ERA_HEISEI        => self::ERA_INITIAL_HEISEI,
+        self::ERA_REIWA         => self::ERA_INITIAL_REIWA
     ];
 
     /**
@@ -118,11 +123,10 @@ class JpChronos extends Chronos
      *
      * @author ito
      */
-    public function format($format)
+    public function format($format, $options = [])
     {
         $formated = parent::format($format);
-
-        return $this->warekiFormat($formated);
+        return $this->warekiFormat($formated, $options);
     }
 
     /**
@@ -177,18 +181,17 @@ class JpChronos extends Chronos
      *
      * @author ito
      */
-    public function warekiYear($ganFlg = true)
+    public function warekiYear($gango = true)
     {
-        $year = parent::format('Y');
         $wareki = $this->wareki();
-
         if ( $wareki === false ) {
             return '';
         }
 
+        $year = parent::format('Y');
         $sub = self::$ERA_TO_START_YEAR_OPTIONS[$wareki];
         $warekiYear = $year - $sub + 1;
-        if ($warekiYear == 1 && $ganFlg == true) {
+        if ($warekiYear == 1 && $gango == true) {
             $warekiYear = '元';
         }
 
@@ -200,9 +203,9 @@ class JpChronos extends Chronos
      *
      * @author ito
      */
-    public function warekiZeroYear()
+    public function warekiZeroYear($gango = true)
     {
-        $warekiYear = $this->warekiYear();
+        $warekiYear = $this->warekiYear($gango);
         //元年以外は2桁で0埋めする{}
         if (is_numeric($warekiYear)) {
             $warekiYear = sprintf('%02d', $warekiYear);
@@ -216,8 +219,11 @@ class JpChronos extends Chronos
      *
      * @author ito
      */
-    public function warekiFormat($jPformat)
+    public function warekiFormat($jPformat, $options = [])
     {
+        $gango = (isset($options['gango']) && $options['gango'] == false)? false: true;
+        $zeroPadding = (isset($options['zero_padding']) && $options['zero_padding'] == false)? false: true;
+
         // 明治・大正・昭和・平成変換
         $jPformat = preg_replace('/{元号}/', $this->wareki(), $jPformat);
 
@@ -225,10 +231,9 @@ class JpChronos extends Chronos
         $jPformat = preg_replace('/{短元号}/', $this->warekiInitial(), $jPformat);
 
         // 昭和63の「63」の変換
-        $jPformat = preg_replace('/{年}/', $this->warekiYear(), $jPformat);
+        $jPformat = preg_replace('/{年}/', $this->warekiYear($gango), $jPformat);
 
-        // 昭和63の「63」の変換(桁ぞろえ)
-        $jPformat = preg_replace('/{0年}/', $this->warekiZeroYear(), $jPformat);
+        $jPformat = preg_replace('/{0年}/', $this->warekiZeroYear($gango), $jPformat);
 
         return $jPformat;
     }
@@ -294,8 +299,15 @@ class JpChronos extends Chronos
         ) {
             $era = self::ERA_SHOWA;
         // 平成
-        } elseif (self::START_DATE_HEISEI <= $time) {
+        } elseif (
+            (self::START_DATE_HEISEI <= $time) &&
+            ($time < self::START_DATE_REIWA)
+        ) {
             $era = self::ERA_HEISEI;
+        } elseif (
+            (self::START_DATE_REIWA <= $time)
+        ) {
+            $era = self::ERA_REIWA;
         }
 
         switch ($format) {
